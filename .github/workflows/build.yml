@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract Android project
-        run: python3 -m zipfile -e simple-gboard-source-v5.zip .
+        run: python3 -m zipfile -e simple-gboard-source-v8-fixed.zip .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
