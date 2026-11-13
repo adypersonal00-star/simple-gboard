@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Extract updated Android project
-        run: python3 -m zipfile -e simple-gboard-source-v14.zip .
+      - name: Extract updated native Android IME project
+        run: python3 -m zipfile -e simple-gboard-source-v15.zip .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
