@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Extract Android project
-        run: python3 -m zipfile -e simple-gboard-source-v13.zip .
+      - name: Extract updated Android project
+        run: python3 -m zipfile -e simple-gboard-source-v14.zip .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -30,7 +30,7 @@ jobs:
         run: gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: simple-gboard-debug-apk
+          name: simple-gboard-v5-ime-debug-apk
           path: scratch/simple-gboard/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
