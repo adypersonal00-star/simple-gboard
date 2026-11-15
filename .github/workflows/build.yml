@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract AI Keyboard source
-        run: python3 -c "import zipfile; zipfile.ZipFile('ai-keyboard-source-v2.zip').extractall('project')"
+        run: python3 -c "import zipfile; zipfile.ZipFile('ai-keyboard-source-v3.zip').extractall('project')"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
