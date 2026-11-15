@@ -1,4 +1,4 @@
-name: Build Simple Gboard APK
+name: Build and emulator-test AI Keyboard
 on:
   workflow_dispatch:
   push:
@@ -6,31 +6,38 @@ on:
 permissions:
   contents: read
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Extract updated native IME source v19
-        run: python3 -m zipfile -e simple-gboard-source-v19.zip .
+      - name: Extract AI Keyboard source
+        run: python3 -c "import zipfile; zipfile.ZipFile('ai-keyboard-source-v2.zip').extractall('project')"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v4
+      - name: Build APK
+        working-directory: project
+        run: chmod +x gradlew && ./gradlew --no-daemon assembleDebug
+      - name: Enable KVM for Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and test keyboard in Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          packages: ''
-          accept-android-sdk-licenses: true
-      - name: Install Android SDK platform
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-      - name: Build debug APK
-        working-directory: scratch/simple-gboard
-        run: gradle assembleDebug --no-daemon
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          working-directory: project
+          script: python3 scripts/emulator_smoke.py
       - uses: actions/upload-artifact@v4
         with:
-          name: simple-gboard-v7-native-ime-apk
-          path: scratch/simple-gboard/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+          name: AI-Keyboard-debug-tested
+          path: project/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
