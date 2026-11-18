@@ -1,0 +1,35 @@
+name: Build Simple Player Android APK
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'simple-player-source-v1.zip'
+      - '.github/workflows/simple-player.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Simple Player source
+        run: python3 -c "import zipfile; zipfile.ZipFile('simple-player-source-v1.zip').extractall('project')"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build APK
+        working-directory: project
+        run: |
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            ./gradlew --no-daemon assembleDebug && exit 0
+            sleep $((attempt * 20))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Simple-Player-debug
+          path: project/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
