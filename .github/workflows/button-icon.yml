@@ -1,0 +1,35 @@
+name: Build Button Icon Android pack
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'button-icon-source-v3.zip'
+      - '.github/workflows/button-icon.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Button Icon source
+        run: python3 -c "import zipfile; zipfile.ZipFile('button-icon-source-v3.zip').extractall('project')"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build installable APK
+        working-directory: project
+        run: |
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            ./gradlew --no-daemon assembleDebug && exit 0
+            sleep $((attempt * 20))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Button-Icon-debug
+          path: project/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
