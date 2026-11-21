@@ -1,0 +1,35 @@
+name: Build Boot Show Android APK
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'boot-show-source-v1.zip'
+      - '.github/workflows/boot-show.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Boot Show project
+        run: python3 -c "import zipfile; zipfile.ZipFile('boot-show-source-v1.zip').extractall('project')"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build APK
+        working-directory: project
+        run: |
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            ./gradlew --no-daemon assembleDebug && exit 0
+            sleep $((attempt * 20))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Boot-Show-debug
+          path: project/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
