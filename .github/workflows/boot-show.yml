@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'boot-show-source-v2.zip'
+      - 'boot-show-source-v3.zip'
       - '.github/workflows/boot-show.yml'
 permissions:
   contents: read
@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract Boot Show project
-        run: python3 -c "import zipfile; zipfile.ZipFile('boot-show-source-v2.zip').extractall('project')"
+        run: python3 -c "import zipfile; zipfile.ZipFile('boot-show-source-v3.zip').extractall('project')"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -23,13 +23,9 @@ jobs:
         working-directory: project
         run: |
           chmod +x gradlew
-          for attempt in 1 2 3; do
-            ./gradlew --no-daemon assembleDebug && exit 0
-            sleep $((attempt * 20))
-          done
-          exit 1
+          ./gradlew --no-daemon assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: Boot-Show-debug-v2
+          name: Boot-Show-debug-v3
           path: project/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
