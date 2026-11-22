@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'boot-show-source-v3.zip'
+      - 'boot-show-source-v4.zip'
       - '.github/workflows/boot-show.yml'
 permissions:
   contents: read
@@ -14,18 +14,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract Boot Show project
-        run: python3 -c "import zipfile; zipfile.ZipFile('boot-show-source-v3.zip').extractall('project')"
-      - uses: actions/setup-java@v4
+        run: python3 -c "import zipfile; zipfile.ZipFile('boot-show-source-v4.zip').extractall('project')"
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - name: Build APK
+      - name: Prepare stable signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.BOOT_SHOW_KEYSTORE_B64 }}
+        run: echo "$KEYSTORE_B64" | base64 --decode > project/boot-show-release.p12
+      - name: Build signed release APK
         working-directory: project
+        env:
+          BOOT_SHOW_KEYSTORE_PASSWORD: ${{ secrets.BOOT_SHOW_KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
+          ./gradlew --no-daemon assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: Boot-Show-debug-v3
-          path: project/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          name: Boot-Show-stable-v4
+          path: project/app/build/outputs/apk/release/app-release.apk
+          retention-days: 90
